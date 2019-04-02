@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		#code{
+			text-transform: uppercase;
+		}
+		.arrow{
+			width: 50vw;
+			height: 100vh;
+			position: fixed;
+			top: 0;
+			color: white;
+			text-align: center;
+			line-height: 100%;
+			font-size: 100vh;
+		}
+		#left{
+			left: 0;
+			background-color: #f4d130;
+		}
+		#right{
+			right: 0;
+			background-color: #f43d30;
+		}
+		*{
+			-webkit-touch-callout: none; /* iOS Safari */
+			-webkit-user-select: none; /* Safari */
+			-khtml-user-select: none; /* Konqueror HTML */
+			-moz-user-select: none; /* Firefox */
+			-ms-user-select: none; /* Internet Explorer/Edge */
+			user-select: none; /* Non-prefixed version, currently
+		                                  supported by Chrome and Opera */
+		}
+	</style>
+</head>
+<body>
+	<input id="code" placeholder="That 4-letter code"></input><button id="go">Submit</button>
+	<script>
+		var config = {
+			apiKey: "AIzaSyBCeTVF1RvVNAefmETbBgLOv6lN0btN0q8",
+			authDomain: "online-stuff-3e092.firebaseapp.com",
+			databaseURL: "https://online-stuff-3e092.firebaseio.com",
+			projectId: "online-stuff-3e092",
+			storageBucket: "online-stuff-3e092.appspot.com",
+			messagingSenderId: "878238554342"
+		};
+		firebase.initializeApp(config);
+		var database = firebase.database();
+		
+		var code = "";
+		var page = 1;
+		
+		document.getElementById("go").onclick = function(){
+			code = document.getElementById("code").value.toUpperCase();
+			database.ref(code).once("value", function(e){
+				if(e.val() != undefined && e.val().page != undefined){
+					page = e.val().page;
+					document.body.innerHTML = "<div class='arrow' id='left' onclick='left()'>&lt;</div><div class='arrow' id='right' onclick='right()'>&gt;</div>";
+					
+				}
+			})
+		}
+		function left(){
+			database.ref(code + "/page").set(page = Math.max(1, --page));
+		}
+		
+		function right(){
+			database.ref(code + "/page").set(++page);
+		}
+	</script>
+</body>
+</html>
