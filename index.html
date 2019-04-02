@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+		}
+		#code{
+			position: fixed;
+			font-size: 50px;
+		/* 	text-align: center; */
+			top: 10px;
+			left: 10px;
+		/* 	width: 100%; */
+		}
+		#del{
+			margin: 20px;
+			width: 300px;
+		}
+	</style>
+</head>
+<body>
+	<div id="del">
+	<input id="url" placeholder="URL to song PDF"></input><button id="go">Submit</button>
+	<div>Okay so this is pretty simple you just find a link to a song PDF and type it in, press submit. Then you go to <a href="jchabin.github.io/music/controller">this page</a> on a phone or something, and enter the code that 4-letter code! Then just press the arrows! Yee haw!</div>
+	</div>
+	<canvas id="c"></canvas>
+	<script>
+		var FOOLS = true;
+		
+		var getPage;
+		
+		var config = {
+			apiKey: "AIzaSyBCeTVF1RvVNAefmETbBgLOv6lN0btN0q8",
+			authDomain: "online-stuff-3e092.firebaseapp.com",
+			databaseURL: "https://online-stuff-3e092.firebaseio.com",
+			projectId: "online-stuff-3e092",
+			storageBucket: "online-stuff-3e092.appspot.com",
+			messagingSenderId: "878238554342"
+		};
+		firebase.initializeApp(config);
+		var database = firebase.database();
+		
+		var code = "";
+		
+		function getCode(){
+			var text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+			var out = "";
+			for(var i = 0; i < 4; i++)
+				out += text[Math.floor(Math.random() * text.length)];
+			code = out;
+			database.ref(out).once("value", function(e){
+				if(e.val() == undefined || e.val().page == undefined){
+					document.getElementById("code").innerHTML = code;
+					database.ref(code).set({page: 1});
+					database.ref(code).on("value", function(e){
+						getPage(e.val().page);
+					});
+				}else
+					getCode();
+			})
+		}
+		
+		document.getElementById("go").onclick = function(){
+			if(FOOLS)
+				window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+			var url = document.getElementById("url").value;
+			var load = pdfjsLib.getDocument("https://cors-anywhere.herokuapp.com/" + url);
+			load.promise.then(function(pdf){
+				document.getElementById("del").outerHTML = "<div id='code'></div>";
+				getCode();
+				getPage = function(n){
+					pdf.getPage(n).then(function(page){
+						var viewport = page.getViewport({scale: 1});
+						var c = document.getElementById("c");
+						c.height = viewport.height;
+						c.width = viewport.width;
+						var ctx = c.getContext("2d");
+						var renderContext = {
+							canvasContext: ctx,
+							viewport: viewport
+						};
+						page.render(renderContext);
+					});
+				}
+				getPage(1);
+			});
+		}
+	</script>
+</body>
+</html>
